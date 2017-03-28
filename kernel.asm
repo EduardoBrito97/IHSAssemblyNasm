@@ -56,6 +56,8 @@ dados:
     MAX_contatos db 0
     num_grupos db 0
     MAX_grupos db 0
+   	stringNomeSearch times 30 db 0 
+   	tam_String_Search db 0
 
     ;Testes
     testeAdd: db "Add", 0
@@ -84,6 +86,7 @@ ret
 
 readString:
 	;Lê e printa os caracteres lidos e guarda no endereço DI
+	xor cl, cl
 	loopRead:
 		mov ah, 0
 		int 16h
@@ -96,6 +99,7 @@ readString:
 		je fimLoopRead
 		
 		stosb
+		inc cl
 		cmp al, 08h ;É backspace?
 		je backSpace
 		jmp loopRead
@@ -104,6 +108,7 @@ readString:
 			;Pra printar o backSpace, vc precisa printar um backSpace pra voltar (já printado na chamada)
 			;Printar um space pra apagar a letra
 			;Printar outro backSpace pra voltar
+			dec cl
 		    mov al, 0x20 ; ASCII for Space
     		mov ah, 0xe
 			mov bh, 0
@@ -116,6 +121,8 @@ readString:
 			int 10h
 	jmp loopRead 
 	fimLoopRead:
+	dec cl
+	mov [tam_String_Search], cl
 	xor cl, cl 
 	mov [di], cl ;Colocando um \0 no fim da string
 ret
@@ -357,14 +364,52 @@ addCom:
 	mov [ptr_ultimo_contato], di
 	call checkPage
 
+	mov ax, [MAX_contatos]
+	inc ax
+	mov [MAX_contatos], ax
+
 jmp comand
 
 searchCom:
 	call checkPage
 	call setCursor
-	mov si, testeSearch
+	mov si, nome
 	call printarMensagem
 
+	mov ax, 0
+	mov es, ax
+	mov di, stringNomeSearch
+	call readString
+
+	mov si, [ptr_agenda]
+	sub si, 86
+	mov [ptr_contato_atual], si
+
+	compararStringMaior:
+		mov si, [ptr_contato_atual]
+		add si, 86
+		mov [ptr_contato_atual], si
+
+		mov cx, [tam_String_Search]
+		compararStrings:
+			cmp cx, 0
+			je sucesso
+			mov si, [ptr_contato_atual]
+			add si, cx
+			mov ax, [si]
+			mov si, stringNomeSearch
+			add si, cx
+			mov bx, [si]
+			dec cl
+			cmp ax, bx
+			jne compararStringMaior
+		je compararStrings
+
+	sucesso:
+	call setCursor
+	call checkPage
+	mov si, stringNomeSearch
+	call printarMensagem
 jmp comand
 
 editCom:
