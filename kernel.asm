@@ -418,6 +418,54 @@ editCom:
 	mov si, testeEdit
 	call printarMensagem
 
+			;;		Falta uma funcao aqui de BUSCA
+			;;		esta irá retornar o ptr_contato_atual
+			;;		que será usado abaixo
+			;;		!!!!!!!!!!!!!!!!!!!!!!!!
+
+	call checkPage
+	call setCursor
+	mov si, nome
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	call readString
+
+	call checkPage
+	call setCursor
+	mov si, grupo
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	add di, 30
+	call readString
+
+	call checkPage
+	call setCursor
+	mov si, email
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	add di, 45
+	call readString
+
+	call checkPage
+	call setCursor
+	mov si, telefone
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	add di, 75
+	call readString
+
 jmp comand
 
 delCom:
@@ -432,6 +480,72 @@ listCom:
 	call setCursor
 	mov si, testeList
 	call printarMensagem
+
+	mov cx, [MAX_contatos]
+	mov si, [ptr_contato_atual]
+	sub si, 86
+	mov [ptr_contato_atual], si
+
+	lll:
+
+	push cx
+
+	mov si, [ptr_contato_atual]
+	add si, 86
+	mov [ptr_contato_atual], si
+
+
+	;;
+
+	call checkPage
+	call setCursor
+	mov si, nome
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	call printarMensagem
+
+	call checkPage
+	call setCursor
+	mov si, grupo
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 30
+	call printarMensagem
+
+	call checkPage
+	call setCursor
+	mov si, email
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 45
+	call printarMensagem
+
+
+	call checkPage
+	call setCursor
+	mov si, telefone
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 75
+	call printarMensagem
+
+	pop cx
+	loop lll
+
+	;;
+
 jmp comand
 
 listGroup:
