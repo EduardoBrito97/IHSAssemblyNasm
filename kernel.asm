@@ -571,7 +571,7 @@ errorMessage:
 jmp comand
 
 
-delContato:
+delCom:
 	;Chama funcao de busca do contato que irá setar ptr_contato_atual
 
 	mov ax, [ptr_contato_atual]
