@@ -699,31 +699,6 @@ errorMessage:
 	call printarMensagem
 
 jmp comand
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-COMANDOOCULTOSALVAVIDA:
-	mov cl, [MAX_contatos]
-	mov [MAX_contatos_aux], cl
-	mov si, reservaContato
-	mov [ptr_contato_atual], si
-	PRINTATUTO:
-
-		mov si, [ptr_contato_atual]
-		call printarDados
-
-		mov si, [ptr_contato_atual]
-		add si, tam_contato
-		mov [ptr_contato_atual], si
-
-		xor al, al
-		mov cl, [MAX_contatos]
-		dec cl
-		mov [MAX_contatos], cl
-		cmp cl, al
-	jne PRINTATUTO
-
-	mov cl, [MAX_contatos_aux]
-	mov [MAX_contatos], cl
-jmp comand
 
 busca:
 	call checkPage
