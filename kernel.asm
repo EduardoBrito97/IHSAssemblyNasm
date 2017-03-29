@@ -7,7 +7,7 @@ constantes:
 	cor_limite equ 7
 	linha_limite equ 120
 	coluna_Mensagem equ 17
-	
+
 	;Tamanhos de constantes
 	tam_nome equ 30
 	tam_grupo equ 1
@@ -59,7 +59,7 @@ dados:
 
     num_grupos db 0
     MAX_grupos db 0
-   	stringNomeSearch times 30 db 0 
+   	stringNomeSearch times 30 db 0
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
@@ -449,8 +449,8 @@ je listGroup
 cmp al, '7'
 je clearCom
 
-cmp al, '8'
-je COMANDOOCULTOSALVAVIDA
+;cmp al, '8'
+;je COMANDOOCULTOSALVAVIDA
 
 jmp errorMessage
 
@@ -558,19 +558,19 @@ searchCom:
 
 			mov cl, [tam_String_Search_aux]
 			dec cl
-			mov [tam_String_Search_aux], cl 
+			mov [tam_String_Search_aux], cl
 
 			cmpsb
 			jne compararStringMaior
 		je compararStrings
-	
+
 	sucesso:
 	mov si, [ptr_contato_atual]
 	call printarDados
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
-	
+
 	erro:
 	call setCursor
 	call checkPage
@@ -648,7 +648,7 @@ editCom:
 jmp comand
 
 delCom:
-	
+
 	call busca
 	jc comand
 
@@ -667,7 +667,7 @@ delCom:
 
 		jne substituicao
 
-	delUltimo
+	delUltimo:
 		mov si, [ptr_ultimo_contato]
 		sub si, tam_contato
 		mov [ptr_ultimo_contato], si
@@ -684,72 +684,38 @@ listCom:
 	mov si, testeList
 	call printarMensagem
 
-	mov di, [num_contatos]
+	mov di, [MAX_contatos]
 	mov si, 0
 	cmp si, di
 	je sem_contatos
 
-	mov cx, [MAX_contatos]
-	mov si, [ptr_contato_atual]
 
-	sub si, tam_contato
-	mov [ptr_contato_atual], si
+		mov cl, [MAX_contatos]
+		mov [MAX_contatos_aux], cl
+		mov si, reservaContato
+		mov [ptr_contato_atual], si
 
-	lll:
+		PRINTATUTO:
 
-	push cx
+			mov si, [ptr_contato_atual]
+			call printarDados
 
-	mov si, [ptr_contato_atual]
-	add si, tam_contato
-	mov [ptr_contato_atual], si
+			mov si, [ptr_contato_atual]
+			add si, tam_contato
+			mov [ptr_contato_atual], si
 
-	call checkPage
+			xor al, al
+			mov cl, [MAX_contatos]
+			dec cl
+			mov [MAX_contatos], cl
+			cmp cl, al
+		jne PRINTATUTO
+
+		mov cl, [MAX_contatos_aux]
+		mov [MAX_contatos], cl
+
+
 	call setCursor
-	mov si, nome
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	call printarMensagem
-
-	call checkPage
-	call setCursor
-	mov si, grupo
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 30
-	call printarMensagem
-
-	call checkPage
-	call setCursor
-	mov si, email
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 45
-	call printarMensagem
-
-
-	call checkPage
-	call setCursor
-	mov si, telefone
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 75
-	call printarMensagem
-
-	pop cx
-	call setCursor
-	loop lll
 
 	mov si, [ptr_agenda]
 	mov [ptr_contato_atual], si
@@ -780,30 +746,6 @@ errorMessage:
 
 jmp comand
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-COMANDOOCULTOSALVAVIDA:
-	mov cl, [MAX_contatos]
-	mov [MAX_contatos_aux], cl
-	mov si, reservaContato
-	mov [ptr_contato_atual], si
-	PRINTATUTO:
-
-		mov si, [ptr_contato_atual]
-		call printarDados
-
-		mov si, [ptr_contato_atual]
-		add si, tam_contato
-		mov [ptr_contato_atual], si
-
-		xor al, al
-		mov cl, [MAX_contatos]
-		dec cl
-		mov [MAX_contatos], cl
-		cmp cl, al
-	jne PRINTATUTO
-
-	mov cl, [MAX_contatos_aux]
-	mov [MAX_contatos], cl
-jmp comand
 
 fim:
 jmp $
