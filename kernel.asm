@@ -721,6 +721,73 @@ COMANDOOCULTOSALVAVIDA:
 	mov [MAX_contatos], cl
 jmp comand
 
+busca:
+	call checkPage
+	call setCursor
+	mov si, nome
+	call printarMensagem
+
+	xor cl, cl
+	mov [tam_String_Search], cl
+
+	mov ax, 0
+	mov es, ax
+	mov di, stringNomeSearch
+	call readString
+
+	mov si, reservaContato
+	sub si, 86
+	mov [ptr_contato_atual], si
+
+	mov cl, [MAX_contatos]
+	mov [MAX_contatos_aux], cl
+
+	compararStringMaior_:
+		mov si, [ptr_contato_atual]
+		add si, 86
+		mov [ptr_contato_atual], si
+
+		mov cl, [MAX_contatos]
+		cmp cl, 0h
+		je erro
+
+		mov cl, [MAX_contatos]
+		dec cl
+		mov [MAX_contatos], cl
+
+		mov cx, [tam_String_Search]
+		mov [tam_String_Search_aux], cl
+
+		mov di, [ptr_contato_atual]
+		mov si, stringNomeSearch
+		xor ax, ax
+		mov es, ax
+		mov ds, ax
+		compararStrings_:
+			mov cl, [tam_String_Search_aux]
+			cmp cl, 0h
+			jl sucesso_
+
+			mov cl, [tam_String_Search_aux]
+			dec cl
+			mov [tam_String_Search_aux], cl
+
+			cmpsb
+			jne compararStringMaior_
+		je compararStrings_
+
+	sucesso_:
+	call setCursor
+	call checkPage
+	mov si, testeList
+	call printarMensagem
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
+ret
+
+
+
 
 fim:
 jmp $
