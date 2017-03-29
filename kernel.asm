@@ -512,10 +512,12 @@ editCom:
 	mov si, testeEdit
 	call printarMensagem
 
-			;;		Falta uma funcao aqui de BUSCA
-			;;		esta irá retornar o ptr_contato_atual
-			;;		que será usado abaixo
-			;;		!!!!!!!!!!!!!!!!!!!!!!!!
+	call busca
+
+	call checkPage
+	call setCursor
+	mov si, [ptr_contato_atual]
+	call printarMensagem
 
 	call checkPage
 	call setCursor
@@ -560,115 +562,119 @@ editCom:
 	add di, 75
 	call readString
 
-jmp comand
+	mov si, [ptr_agenda]
+	mov [ptr_contato_atual], si
 
-delCom:
+	call checkPage
+	call setCursor
+	mov si, [ptr_contato_atual]
+	call printarMensagem
 
-	call busca
-
-	mov di, [ptr_contato_atual]
-	mov si, [ptr_ultimo_contato]
-	mov bx, tam_contato
-	mov dx, 0
-	substituicao:
-		lodsb
-
-		dec bx
-		mov [di], al
-		inc di
-		cmp bx,dx
-
-		jne substituicao
-
-	delUltimo
-		mov si, [ptr_ultimo_contato]
-		sub si, tam_contato
-		mov [ptr_ultimo_contato], si
-		mov ax, [MAX_contatos]
-		dec ax
-		mov [MAX_contatos], ax
 jmp comand
 
 listCom:
 
+call setCursor
+call checkPage
+mov si, testeList
+call printarMensagem
+
+
+
+;call checkPage
+;call setCursor
+;mov si, grupo
+;call printarMensagem
+
+;mov ax, 0
+;mov es, ax
+;mov di, stringNomeSearch
+;call readString
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-	call setCursor
-	mov si, testeList
-	call printarMensagem
-
-	mov di, [num_contatos]
-	mov si, 0
-	cmp si, di
-	je sem_contatos
-
-	mov cx, [MAX_contatos]
-	mov si, [ptr_contato_atual]
-
-	sub si, tam_contato
+COMANDOOCULTOSALVAVIDA:
+	mov cl, [MAX_contatos]
+	mov [MAX_contatos_aux], cl
+	mov si, reservaContato
 	mov [ptr_contato_atual], si
 
-	lll:
 
-	push cx
-
-	mov si, [ptr_contato_atual]
-	add si, tam_contato
-	mov [ptr_contato_atual], si
-
-	call checkPage
-	call setCursor
-	mov si, nome
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	call printarMensagem
-
-	call checkPage
-	call setCursor
-	mov si, grupo
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 30
-	call printarMensagem
-
-	call checkPage
-	call setCursor
-	mov si, email
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 45
-	call printarMensagem
+	PRINTATUTO:
 
 
-	call checkPage
-	call setCursor
-	mov si, telefone
-	call printarMensagem
+		; call COMPA
+		;
+		; cmp ax, 1
+		;
+		; jne grupo_nao_bate
 
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 75
-	call printarMensagem
 
-	pop cx
-	call setCursor
-	loop lll
+		call checkPage
+		call setCursor
+		mov si, nome
+		call printarMensagem
+
+		call checkPage
+		;call setCursor
+		mov si, [ptr_contato_atual]
+		call printarMensagem
+
+		call checkPage
+		call setCursor
+		mov si, grupo
+		call printarMensagem
+
+		call checkPage
+		;call setCursor
+		mov si, [ptr_contato_atual]
+		add si, 30
+		call printarMensagem
+
+		call checkPage
+		call setCursor
+		mov si, email
+		call printarMensagem
+
+		call checkPage
+		;call setCursor
+		mov si, [ptr_contato_atual]
+		add si, 45
+		call printarMensagem
+
+		call checkPage
+		call setCursor
+		mov si, telefone
+		call printarMensagem
+
+		call checkPage
+		;call setCursor
+		mov si, [ptr_contato_atual]
+		add si, 75
+		call printarMensagem
+
+		grupo_nao_bate:
+
+		mov si, [ptr_contato_atual]
+		add si, 86
+		mov [ptr_contato_atual], si
+
+		xor al, al
+		mov cl, [MAX_contatos]
+		dec cl
+		mov [MAX_contatos], cl
+		cmp cl, al
+	jne PRINTATUTO
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
 
 
 	mov si, [ptr_agenda]
 	mov [ptr_contato_atual], si
+	call setCursor
 
-sem_contatos:
 jmp comand
 
 
