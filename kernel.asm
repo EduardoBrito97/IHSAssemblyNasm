@@ -7,7 +7,7 @@ constantes:
 	cor_limite equ 7
 	linha_limite equ 120
 	coluna_Mensagem equ 17
-
+	
 	;Tamanhos de constantes
 	tam_nome equ 30
 	tam_grupo equ 1
@@ -59,7 +59,7 @@ dados:
 
     num_grupos db 0
     MAX_grupos db 0
-   	stringNomeSearch times 30 db 0
+   	stringNomeSearch times 30 db 0 
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
@@ -68,8 +68,83 @@ dados:
     testeSearch: db "Search", 0
     testeDel: db "Del", 0
     testeEdit: db "Edit", 0
-    testeList: db "List", 0
+    testeList: db "Sucesso!", 0
     testeListGroup: db "List Group", 0
+
+busca:
+	call checkPage
+	call setCursor
+	mov si, nome
+	call printarMensagem
+
+	xor cl, cl
+	mov [tam_String_Search], cl
+
+	mov ax, 0
+	mov es, ax
+	mov di, stringNomeSearch
+	call readString
+
+	mov si, reservaContato
+	sub si, tam_contato
+	mov [ptr_contato_atual], si
+
+	mov cl, [MAX_contatos]
+	mov [MAX_contatos_aux], cl
+
+	compararStringMaior_:
+		mov si, [ptr_contato_atual]
+		add si, tam_contato
+		mov [ptr_contato_atual], si
+
+		mov cl, [MAX_contatos]
+		cmp cl, 0h
+		je erro_
+
+		mov cl, [MAX_contatos]
+		dec cl
+		mov [MAX_contatos], cl
+
+		mov cx, [tam_String_Search]
+		mov [tam_String_Search_aux], cl
+
+		mov di, [ptr_contato_atual]
+		mov si, stringNomeSearch
+		xor ax, ax
+		mov es, ax
+		mov ds, ax
+		compararStrings_:
+			mov cl, [tam_String_Search_aux]
+			cmp cl, 0h
+			jl sucesso_
+
+			mov cl, [tam_String_Search_aux]
+			dec cl
+			mov [tam_String_Search_aux], cl
+
+			cmpsb
+			jne compararStringMaior_
+		je compararStrings_
+
+	sucesso_:
+	call setCursor
+	call checkPage
+	mov si, testeList
+	call printarMensagem
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
+ret
+	erro_:
+	call setCursor
+	call checkPage
+	mov si, mensagem_erro
+	call printarMensagem
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
+	stc
+ret
 
 printarMenu:
 	menu:
@@ -483,19 +558,19 @@ searchCom:
 
 			mov cl, [tam_String_Search_aux]
 			dec cl
-			mov [tam_String_Search_aux], cl
+			mov [tam_String_Search_aux], cl 
 
 			cmpsb
 			jne compararStringMaior
 		je compararStrings
-
+	
 	sucesso:
 	mov si, [ptr_contato_atual]
 	call printarDados
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
-
+	
 	erro:
 	call setCursor
 	call checkPage
@@ -571,13 +646,16 @@ editCom:
 	call printarMensagem
 
 jmp comand
-delCom:
 
+delCom:
+	
 	call busca
+	jc comand
 
 	mov di, [ptr_contato_atual]
 	mov si, [ptr_ultimo_contato]
 	mov bx, tam_contato
+	sub si, bx
 	mov dx, 0
 	substituicao:
 		lodsb
@@ -600,107 +678,83 @@ jmp comand
 
 listCom:
 
-call setCursor
-call checkPage
-mov si, testeList
-call printarMensagem
-
-
-
-;call checkPage
-;call setCursor
-;mov si, grupo
-;call printarMensagem
-
-;mov ax, 0
-;mov es, ax
-;mov di, stringNomeSearch
-;call readString
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-COMANDOOCULTOSALVAVIDA:
-	mov cl, [MAX_contatos]
-	mov [MAX_contatos_aux], cl
-	mov si, reservaContato
+
+	call setCursor
+	mov si, testeList
+	call printarMensagem
+
+	mov di, [num_contatos]
+	mov si, 0
+	cmp si, di
+	je sem_contatos
+
+	mov cx, [MAX_contatos]
+	mov si, [ptr_contato_atual]
+
+	sub si, tam_contato
 	mov [ptr_contato_atual], si
 
+	lll:
 
-	PRINTATUTO:
+	push cx
+
+	mov si, [ptr_contato_atual]
+	add si, tam_contato
+	mov [ptr_contato_atual], si
+
+	call checkPage
+	call setCursor
+	mov si, nome
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	call printarMensagem
+
+	call checkPage
+	call setCursor
+	mov si, grupo
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 30
+	call printarMensagem
+
+	call checkPage
+	call setCursor
+	mov si, email
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 45
+	call printarMensagem
 
 
-		; call COMPA
-		;
-		; cmp ax, 1
-		;
-		; jne grupo_nao_bate
+	call checkPage
+	call setCursor
+	mov si, telefone
+	call printarMensagem
 
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 75
+	call printarMensagem
 
-		call checkPage
-		call setCursor
-		mov si, nome
-		call printarMensagem
-
-		call checkPage
-		;call setCursor
-		mov si, [ptr_contato_atual]
-		call printarMensagem
-
-		call checkPage
-		call setCursor
-		mov si, grupo
-		call printarMensagem
-
-		call checkPage
-		;call setCursor
-		mov si, [ptr_contato_atual]
-		add si, 30
-		call printarMensagem
-
-		call checkPage
-		call setCursor
-		mov si, email
-		call printarMensagem
-
-		call checkPage
-		;call setCursor
-		mov si, [ptr_contato_atual]
-		add si, 45
-		call printarMensagem
-
-		call checkPage
-		call setCursor
-		mov si, telefone
-		call printarMensagem
-
-		call checkPage
-		;call setCursor
-		mov si, [ptr_contato_atual]
-		add si, 75
-		call printarMensagem
-
-		grupo_nao_bate:
-
-		mov si, [ptr_contato_atual]
-		add si, 86
-		mov [ptr_contato_atual], si
-
-		xor al, al
-		mov cl, [MAX_contatos]
-		dec cl
-		mov [MAX_contatos], cl
-		cmp cl, al
-	jne PRINTATUTO
-
-	mov cl, [MAX_contatos_aux]
-	mov [MAX_contatos], cl
-
+	pop cx
+	call setCursor
+	loop lll
 
 	mov si, [ptr_agenda]
 	mov [ptr_contato_atual], si
-	call setCursor
 
+sem_contatos:
 jmp comand
 
 
@@ -726,95 +780,30 @@ errorMessage:
 
 jmp comand
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; COMANDOOCULTOSALVAVIDA:
-; 	mov cl, [MAX_contatos]
-; 	mov [MAX_contatos_aux], cl
-; 	mov si, reservaContato
-; 	mov [ptr_contato_atual], si
-; 	PRINTATUTO:
-;
-; 		mov si, [ptr_contato_atual]
-; 		call printarDados
-;
-; 		mov si, [ptr_contato_atual]
-; 		add si, tam_contato
-; 		mov [ptr_contato_atual], si
-;
-; 		xor al, al
-; 		mov cl, [MAX_contatos]
-; 		dec cl
-; 		mov [MAX_contatos], cl
-; 		cmp cl, al
-; 	jne PRINTATUTO
-;
-; 	mov cl, [MAX_contatos_aux]
-; 	mov [MAX_contatos], cl
-; jmp comand
-
-busca:
-	call checkPage
-	call setCursor
-	mov si, nome
-	call printarMensagem
-
-	xor cl, cl
-	mov [tam_String_Search], cl
-
-	mov ax, 0
-	mov es, ax
-	mov di, stringNomeSearch
-	call readString
-
-	mov si, reservaContato
-	sub si, tam_contato
-	mov [ptr_contato_atual], si
-
+COMANDOOCULTOSALVAVIDA:
 	mov cl, [MAX_contatos]
 	mov [MAX_contatos_aux], cl
+	mov si, reservaContato
+	mov [ptr_contato_atual], si
+	PRINTATUTO:
 
-	compararStringMaior_:
+		mov si, [ptr_contato_atual]
+		call printarDados
+
 		mov si, [ptr_contato_atual]
 		add si, tam_contato
 		mov [ptr_contato_atual], si
 
-		mov cl, [MAX_contatos]
-		cmp cl, 0h
-		je erro
-
+		xor al, al
 		mov cl, [MAX_contatos]
 		dec cl
 		mov [MAX_contatos], cl
-
-		mov cx, [tam_String_Search]
-		mov [tam_String_Search_aux], cl
-
-		mov di, [ptr_contato_atual]
-		mov si, stringNomeSearch
-		xor ax, ax
-		mov es, ax
-		mov ds, ax
-		compararStrings_:
-			mov cl, [tam_String_Search_aux]
-			cmp cl, 0h
-			jl sucesso_
-
-			mov cl, [tam_String_Search_aux]
-			dec cl
-			mov [tam_String_Search_aux], cl
-
-			cmpsb
-			jne compararStringMaior_
-		je compararStrings_
-
-	sucesso_:
-	call setCursor
-	call checkPage
-	mov si, testeList
-	call printarMensagem
+		cmp cl, al
+	jne PRINTATUTO
 
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
-ret
+jmp comand
 
 fim:
 jmp $
