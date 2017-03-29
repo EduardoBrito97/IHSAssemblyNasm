@@ -559,25 +559,29 @@ editCom:
 jmp comand
 
 delCom:
-	;Chama funcao de busca do contato
 
-	mov ax, [ptr_contato_atual]
+	call busca
+
+	mov di, [ptr_contato_atual]
 	mov si, [ptr_ultimo_contato]
-	mov cx, 86
+	mov bx, 86
 	mov dx, 0
 	substituicao:
 		lodsb
 
-		dec cx
-		mov [ax], al
-		inc ax
-		cmp cx,dx
+		dec bx
+		mov [di], al
+		inc di
+		cmp bx,dx
 
 		jne substituicao
 
 	delUltimo
 		sub si, 172
 		mov [ptr_ultimo_contato], si
+		mov ax, [MAX_contatos]
+		dec ax
+		mov [MAX_contatos], ax
 jmp comand
 
 listCom:
