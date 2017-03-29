@@ -559,8 +559,10 @@ editCom:
 jmp comand
 
 delCom:
-
+	mov di, mensagem_erro
 	call busca
+	cmp di,si
+	je comand
 
 	mov di, [ptr_contato_atual]
 	mov si, [ptr_ultimo_contato]
