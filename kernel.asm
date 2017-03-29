@@ -71,6 +71,77 @@ dados:
     testeList: db "List", 0
     testeListGroup: db "List Group", 0
 
+printarMenu:
+	menu:
+	;Primeira Instrução
+	call setCursorMenu
+	mov si, instructionOne
+	call printarMensagem
+
+	;Segunda Instrução
+	call setCursorMenu
+	mov si, instructionTwo
+	call printarMensagem
+
+	;Terceira instrução
+	call setCursorMenu
+	mov si, instructionThree
+	call printarMensagem
+
+	;Quarta Instrução
+	call setCursorMenu
+	mov si, instructionFour
+	call printarMensagem
+
+	;Quinta Instrução
+	call setCursorMenu
+	mov si, instructionFive
+	call printarMensagem
+
+	;Sexta Instrução
+	call setCursorMenu
+	mov si, instructionSix
+	call printarMensagem
+
+	;Sétima Instrução
+	call setCursorMenu
+	mov si, instructionSeven
+	call printarMensagem
+
+	;Printando limite---------------------------------------------------
+	printarlimite:
+
+	mov cx, 0
+	mov dx, 0
+	mov di, linha_limite ;Posição da linha do limite
+	mov si, tam_horizontal_limite
+
+	printarlimite1:
+
+	mov ah, 0Ch
+	mov al, cor_limite ;COR DO LIMITE
+	int 10h
+
+	mov dx, linha_limite
+	jmp printarlimite2
+
+	printarlimite2:
+	mov ah, 0Ch
+	mov al, cor_limite ;COR DO LIMITE
+	int 10h
+
+	inc cx
+	cmp cx, si
+	je fimMenu
+	jmp printarlimite2
+	;Printando limite---------------------------------------------------
+
+	fimMenu:
+	mov dh, 7 ;numero da linha
+	inc dh
+	mov [linha_Ultima_msg], dh
+ret
+
 printarDados:
 	mov [ptr_aux], si
 
@@ -262,74 +333,7 @@ mov bh, 0
 mov bl, 0h ; selecionando a cor da tela (preta)
 int 10h
 
-menu:
-;Primeira Instrução
-call setCursorMenu
-mov si, instructionOne
-call printarMensagem
-
-;Segunda Instrução
-call setCursorMenu
-mov si, instructionTwo
-call printarMensagem
-
-;Terceira instrução
-call setCursorMenu
-mov si, instructionThree
-call printarMensagem
-
-;Quarta Instrução
-call setCursorMenu
-mov si, instructionFour
-call printarMensagem
-
-;Quinta Instrução
-call setCursorMenu
-mov si, instructionFive
-call printarMensagem
-
-;Sexta Instrução
-call setCursorMenu
-mov si, instructionSix
-call printarMensagem
-
-;Sétima Instrução
-call setCursorMenu
-mov si, instructionSeven
-call printarMensagem
-
-;Printando limite---------------------------------------------------
-printarlimite:
-
-mov cx, 0
-mov dx, 0
-mov di, linha_limite ;Posição da linha do limite
-mov si, tam_horizontal_limite
-
-printarlimite1:
-
-mov ah, 0Ch
-mov al, cor_limite ;COR DO LIMITE
-int 10h
-
-mov dx, linha_limite
-jmp printarlimite2
-
-printarlimite2:
-mov ah, 0Ch
-mov al, cor_limite ;COR DO LIMITE
-int 10h
-
-inc cx
-cmp cx, si
-je fimMenu
-jmp printarlimite2
-;Printando limite---------------------------------------------------
-
-fimMenu:
-mov dh, 7 ;numero da linha
-inc dh
-mov [linha_Ultima_msg], dh
+call printarMenu
 
 comand:
 mov ah, 0
