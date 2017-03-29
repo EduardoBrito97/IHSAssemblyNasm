@@ -40,6 +40,9 @@ dados:
     caracter_lido db 0
 
     ;Variáveis de controle de endereço
+    reservaContato times 200 db 0
+	reservaGrupo times 200 db 0
+
     ptr_agenda dw reservaContato
     ptr_ultimo_contato dw reservaContato
     ptr_contato_atual dw reservaContato
@@ -48,16 +51,16 @@ dados:
 	ptr_ultimo_grupo dw reservaGrupo
 	ptr_grupo_atual dw reservaGrupo
 
-	reservaContato times 200 db 0
-	reservaGrupo times 200 db 0
-
 	;Contadores
     num_contatos db 0
     MAX_contatos db 0
+    MAX_contatos_aux db 0
+
     num_grupos db 0
     MAX_grupos db 0
    	stringNomeSearch times 30 db 0 
    	tam_String_Search db 0
+   	tam_String_Search_aux db 0
 
     ;Testes
     testeAdd: db "Add", 0
@@ -87,6 +90,7 @@ ret
 readString:
 	;Lê e printa os caracteres lidos e guarda no endereço DI
 	xor cl, cl
+	mov [tam_String_Search], cl
 	loopRead:
 		mov ah, 0
 		int 16h
@@ -99,7 +103,11 @@ readString:
 		je fimLoopRead
 		
 		stosb
+
+		mov cl, [tam_String_Search]
 		inc cl
+		mov [tam_String_Search], cl
+
 		cmp al, 08h ;É backspace?
 		je backSpace
 		jmp loopRead
@@ -108,7 +116,9 @@ readString:
 			;Pra printar o backSpace, vc precisa printar um backSpace pra voltar (já printado na chamada)
 			;Printar um space pra apagar a letra
 			;Printar outro backSpace pra voltar
+			mov cl, [tam_String_Search]
 			dec cl
+			mov [tam_String_Search], cl
 		    mov al, 0x20 ; ASCII for Space
     		mov ah, 0xe
 			mov bh, 0
@@ -121,8 +131,6 @@ readString:
 			int 10h
 	jmp loopRead 
 	fimLoopRead:
-	dec cl
-	mov [tam_String_Search], cl
 	xor cl, cl 
 	mov [di], cl ;Colocando um \0 no fim da string
 ret
@@ -195,6 +203,11 @@ start:
 xor ax, ax
 mov [linha_Ultima_msg], ax
 mov ds, ax
+
+mov si, reservaContato
+mov [ptr_ultimo_contato], si
+mov [ptr_agenda], si
+mov [ptr_contato_atual], si
 
 mov ah, 0
 mov al, 12h ; escolhendo o modo de vídeo (VGA)
@@ -313,6 +326,9 @@ je listGroup
 cmp al, '7'
 je clearCom
 
+cmp al, '8'
+je COMANDOOCULTOSALVAVIDA
+
 jmp errorMessage
 
 addCom:
@@ -376,40 +392,73 @@ searchCom:
 	mov si, nome
 	call printarMensagem
 
+	xor cl, cl
+	mov [tam_String_Search], cl
+
 	mov ax, 0
 	mov es, ax
 	mov di, stringNomeSearch
 	call readString
 
-	mov si, [ptr_agenda]
+	mov si, reservaContato
 	sub si, 86
 	mov [ptr_contato_atual], si
+
+	mov cl, [MAX_contatos]
+	mov [MAX_contatos_aux], cl
 
 	compararStringMaior:
 		mov si, [ptr_contato_atual]
 		add si, 86
 		mov [ptr_contato_atual], si
 
+		mov cl, [MAX_contatos]
+		cmp cl, 0h
+		je erro
+
+		mov cl, [MAX_contatos]
+		dec cl
+		mov [MAX_contatos], cl
+
 		mov cx, [tam_String_Search]
+		mov [tam_String_Search_aux], cl
+
+		mov di, [ptr_contato_atual]
+		mov si, stringNomeSearch
+		xor ax, ax
+		mov es, ax
+		mov ds, ax
 		compararStrings:
-			cmp cx, 0
-			je sucesso
-			mov si, [ptr_contato_atual]
-			add si, cx
-			mov ax, [si]
-			mov si, stringNomeSearch
-			add si, cx
-			mov bx, [si]
+			mov cl, [tam_String_Search_aux]
+			cmp cl, 0h
+			jl sucesso
+
+			mov cl, [tam_String_Search_aux]
 			dec cl
-			cmp ax, bx
+			mov [tam_String_Search_aux], cl 
+
+			cmpsb
 			jne compararStringMaior
 		je compararStrings
-
+	
 	sucesso:
 	call setCursor
 	call checkPage
-	mov si, stringNomeSearch
+	mov si, testeList
 	call printarMensagem
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
+jmp comand
+	
+	erro:
+	call setCursor
+	call checkPage
+	mov si, mensagem_erro
+	call printarMensagem
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
 jmp comand
 
 editCom:
@@ -417,54 +466,6 @@ editCom:
 	call setCursor
 	mov si, testeEdit
 	call printarMensagem
-
-			;;		Falta uma funcao aqui de BUSCA
-			;;		esta irá retornar o ptr_contato_atual
-			;;		que será usado abaixo
-			;;		!!!!!!!!!!!!!!!!!!!!!!!!
-
-	call checkPage
-	call setCursor
-	mov si, nome
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov di, [ptr_contato_atual]
-	call readString
-
-	call checkPage
-	call setCursor
-	mov si, grupo
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov di, [ptr_contato_atual]
-	add di, 30
-	call readString
-
-	call checkPage
-	call setCursor
-	mov si, email
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov di, [ptr_contato_atual]
-	add di, 45
-	call readString
-
-	call checkPage
-	call setCursor
-	mov si, telefone
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov di, [ptr_contato_atual]
-	add di, 75
-	call readString
 
 jmp comand
 
@@ -480,72 +481,6 @@ listCom:
 	call setCursor
 	mov si, testeList
 	call printarMensagem
-
-	mov cx, [MAX_contatos]
-	mov si, [ptr_contato_atual]
-	sub si, 86
-	mov [ptr_contato_atual], si
-
-	lll:
-
-	push cx
-
-	mov si, [ptr_contato_atual]
-	add si, 86
-	mov [ptr_contato_atual], si
-
-
-	;;
-
-	call checkPage
-	call setCursor
-	mov si, nome
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	call printarMensagem
-
-	call checkPage
-	call setCursor
-	mov si, grupo
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 30
-	call printarMensagem
-
-	call checkPage
-	call setCursor
-	mov si, email
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 45
-	call printarMensagem
-
-
-	call checkPage
-	call setCursor
-	mov si, telefone
-	call printarMensagem
-
-	mov ax, 0
-	mov es, ax
-	mov si, [ptr_contato_atual]
-	add si, 75
-	call printarMensagem
-
-	pop cx
-	loop lll
-
-	;;
-
 jmp comand
 
 listGroup:
@@ -570,29 +505,50 @@ errorMessage:
 
 jmp comand
 
+COMANDOOCULTOSALVAVIDA:
+	mov cl, [MAX_contatos]
+	mov [MAX_contatos_aux], cl
+	mov si, reservaContato
+	mov [ptr_contato_atual], si
+	PRINTATUTO:
 
-delCom:
-	;Chama funcao de busca do contato que irá setar ptr_contato_atual
+		call checkPage
+		call setCursor
+		mov si, [ptr_contato_atual]
+		call printarMensagem
 
-	mov ax, [ptr_contato_atual]
-	mov si, [ptr_ultimo_contato]
-	mov cx, 86
-	mov dx, 0
-	substituicao:
-		lodsb
+		call checkPage
+		call setCursor
+		mov si, [ptr_contato_atual]
+		add si, 30
+		call printarMensagem
 
-		dec cx
-		mov [ax], al
-		inc ax
-		cmp cx,dx
+		call checkPage
+		call setCursor
+		mov si, [ptr_contato_atual]
+		add si, 45
+		call printarMensagem
 
-		jne substituicao
+		call checkPage
+		call setCursor
+		mov si, [ptr_contato_atual]
+		add si, 75
+		call printarMensagem
 
-	delUltimo
-		sub si, 172
-		mov [ptr_ultimo_contato], si
-jp comand
+		mov si, [ptr_contato_atual]
+		add si, 86
+		mov [ptr_contato_atual], si
 
+		xor al, al
+		mov cl, [MAX_contatos]
+		dec cl
+		mov [MAX_contatos], cl
+		cmp cl, al
+	jne PRINTATUTO
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
+jmp comand
 
 fim:
 jmp $
