@@ -7,7 +7,7 @@ constantes:
 	cor_limite equ 7
 	linha_limite equ 120
 	coluna_Mensagem equ 17
-
+	
 	;Tamanhos de constantes
 	tam_nome equ 30
 	tam_grupo equ 1
@@ -17,7 +17,7 @@ constantes:
 	tam_contato equ 87
 	tam_horizontal_limite equ 1280 ;Obs: uma linha é 640, botando 1280 ele fica uma linha mais grossa
 
-	linhas_uma_pag equ 60
+	linhas_uma_pag equ 28
 
 dados:
 	;Mensagens
@@ -40,8 +40,8 @@ dados:
     caracter_lido db 0
 
     ;Variáveis de controle de endereço
-    reservaContato times 200 db 0
-	reservaGrupo times 200 db 0
+    reservaContato times 4000 db 0
+	reservaGrupo times 400 db 0
 
     ptr_agenda dw reservaContato
     ptr_ultimo_contato dw reservaContato
@@ -59,7 +59,7 @@ dados:
 
     num_grupos db 0
     MAX_grupos db 0
-   	stringNomeSearch times 30 db 0
+   	stringNomeSearch times 30 db 0 
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
@@ -70,6 +70,7 @@ dados:
     testeEdit: db "Edit", 0
     testeList: db "Sucesso!", 0
     testeListGroup: db "List Group", 0
+    pressEnterToClear: db "Pressione enter para limpar a tela e imprimir o resto.", 0
 
 busca:
 	call checkPage
@@ -326,43 +327,35 @@ readString:
 ret
 
 checkPage:
+	
+
 	;Checando se precisa avançar uma página
 	mov dx, [linha_Ultima_msg]
 	xor ax, ax
 	add ax, linhas_uma_pag
-	div ax
-	xor cx, cx
-	cmp cx, dx
-	je incPage
-ret
+	cmp dx, ax
+	jge nextPage
+	ret
 
-incPage:
-	;Indo para a próxima página
-	mov ax, [pag_Ultima_msg]
-	inc ax
-	mov [pag_Ultima_msg], ax
+	nextPage:
+		call setCursor
+		mov si, pressEnterToClear
+		call printarMensagem
+		call readString
 
-	;Iniciando na linha 0 da próxima página
-	xor dx,dx
-	mov [linha_Ultima_msg], dx
+		mov ah, 0
+		mov al, 12h ; escolhendo o modo de vídeo (VGA)
+		int 10h
 
-	;Limpando a tela
-	xor ax, ax
-	mov ds, ax
-	mov ah, 0
-	mov al, 12h
-	int 10h
+		mov ah, 0xb
+		mov bh, 0
+		mov bl, 0h ; selecionando a cor da tela (preta)
+		int 10h
 
-	mov ah, 0xb
-	mov bh, 0
-	mov bl, 0h
-	int 10h
+		xor ax, ax
+		mov [linha_Ultima_msg], ax
+		call printarMenu
 
-	mov ah, 2
-	mov bh, 0
-	mov dh, [linha_Ultima_msg]
-	mov dl, 0
-	int 10h
 ret
 
 setCursor:
@@ -449,8 +442,8 @@ je listGroup
 cmp al, '7'
 je clearCom
 
-;cmp al, '8'
-;je COMANDOOCULTOSALVAVIDA
+cmp al, '8'
+je COMANDOOCULTOSALVAVIDA
 
 jmp errorMessage
 
@@ -558,19 +551,19 @@ searchCom:
 
 			mov cl, [tam_String_Search_aux]
 			dec cl
-			mov [tam_String_Search_aux], cl
+			mov [tam_String_Search_aux], cl 
 
 			cmpsb
 			jne compararStringMaior
 		je compararStrings
-
+	
 	sucesso:
 	mov si, [ptr_contato_atual]
 	call printarDados
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
-
+	
 	erro:
 	call setCursor
 	call checkPage
@@ -582,17 +575,8 @@ jmp comand
 jmp comand
 
 editCom:
-	call checkPage
-	call setCursor
-	mov si, testeEdit
-	call printarMensagem
-
 	call busca
-
-	call checkPage
-	call setCursor
-	mov si, [ptr_contato_atual]
-	call printarMensagem
+	jc comand
 
 	call checkPage
 	call setCursor
@@ -640,15 +624,10 @@ editCom:
 	mov si, [ptr_agenda]
 	mov [ptr_contato_atual], si
 
-	call checkPage
-	call setCursor
-	mov si, [ptr_contato_atual]
-	call printarMensagem
-
 jmp comand
 
 delCom:
-
+	
 	call busca
 	jc comand
 
@@ -695,7 +674,7 @@ listCom:
 		mov si, reservaContato
 		mov [ptr_contato_atual], si
 
-		PRINTATUTO:
+		PRINTATUTO_:
 
 			mov si, [ptr_contato_atual]
 			call printarDados
@@ -709,7 +688,7 @@ listCom:
 			dec cl
 			mov [MAX_contatos], cl
 			cmp cl, al
-		jne PRINTATUTO
+		jne PRINTATUTO_
 
 		mov cl, [MAX_contatos_aux]
 		mov [MAX_contatos], cl
@@ -746,6 +725,30 @@ errorMessage:
 
 jmp comand
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+COMANDOOCULTOSALVAVIDA:
+	mov cl, [MAX_contatos]
+	mov [MAX_contatos_aux], cl
+	mov si, reservaContato
+	mov [ptr_contato_atual], si
+	PRINTATUTO:
+
+		mov si, [ptr_contato_atual]
+		call printarDados
+
+		mov si, [ptr_contato_atual]
+		add si, tam_contato
+		mov [ptr_contato_atual], si
+
+		xor al, al
+		mov cl, [MAX_contatos]
+		dec cl
+		mov [MAX_contatos], cl
+		cmp cl, al
+	jne PRINTATUTO
+
+	mov cl, [MAX_contatos_aux]
+	mov [MAX_contatos], cl
+jmp comand
 
 fim:
 jmp $
