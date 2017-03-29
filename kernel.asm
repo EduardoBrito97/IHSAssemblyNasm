@@ -7,7 +7,7 @@ constantes:
 	cor_limite equ 7
 	linha_limite equ 120
 	coluna_Mensagem equ 17
-	
+
 	;Tamanhos de constantes
 	tam_nome equ 30
 	tam_grupo equ 1
@@ -59,7 +59,7 @@ dados:
 
     num_grupos db 0
     MAX_grupos db 0
-   	stringNomeSearch times 30 db 0 
+   	stringNomeSearch times 30 db 0
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
@@ -483,19 +483,19 @@ searchCom:
 
 			mov cl, [tam_String_Search_aux]
 			dec cl
-			mov [tam_String_Search_aux], cl 
+			mov [tam_String_Search_aux], cl
 
 			cmpsb
 			jne compararStringMaior
 		je compararStrings
-	
+
 	sucesso:
 	mov si, [ptr_contato_atual]
 	call printarDados
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
-	
+
 	erro:
 	call setCursor
 	call checkPage
@@ -570,6 +570,32 @@ editCom:
 	mov si, [ptr_contato_atual]
 	call printarMensagem
 
+jmp comand
+delCom:
+
+	call busca
+
+	mov di, [ptr_contato_atual]
+	mov si, [ptr_ultimo_contato]
+	mov bx, tam_contato
+	mov dx, 0
+	substituicao:
+		lodsb
+
+		dec bx
+		mov [di], al
+		inc di
+		cmp bx,dx
+
+		jne substituicao
+
+	delUltimo
+		mov si, [ptr_ultimo_contato]
+		sub si, tam_contato
+		mov [ptr_ultimo_contato], si
+		mov ax, [MAX_contatos]
+		dec ax
+		mov [MAX_contatos], ax
 jmp comand
 
 listCom:
@@ -699,6 +725,31 @@ errorMessage:
 	call printarMensagem
 
 jmp comand
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; COMANDOOCULTOSALVAVIDA:
+; 	mov cl, [MAX_contatos]
+; 	mov [MAX_contatos_aux], cl
+; 	mov si, reservaContato
+; 	mov [ptr_contato_atual], si
+; 	PRINTATUTO:
+;
+; 		mov si, [ptr_contato_atual]
+; 		call printarDados
+;
+; 		mov si, [ptr_contato_atual]
+; 		add si, tam_contato
+; 		mov [ptr_contato_atual], si
+;
+; 		xor al, al
+; 		mov cl, [MAX_contatos]
+; 		dec cl
+; 		mov [MAX_contatos], cl
+; 		cmp cl, al
+; 	jne PRINTATUTO
+;
+; 	mov cl, [MAX_contatos_aux]
+; 	mov [MAX_contatos], cl
+; jmp comand
 
 busca:
 	call checkPage
