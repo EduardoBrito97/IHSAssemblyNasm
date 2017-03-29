@@ -663,12 +663,7 @@ listCom:
 	mov si, [ptr_agenda]
 	mov [ptr_contato_atual], si
 
-
-
 sem_contatos:
-
-
-
 jmp comand
 
 
@@ -701,28 +696,8 @@ COMANDOOCULTOSALVAVIDA:
 	mov [ptr_contato_atual], si
 	PRINTATUTO:
 
-		call checkPage
-		call setCursor
 		mov si, [ptr_contato_atual]
-		call printarMensagem
-
-		call checkPage
-		call setCursor
-		mov si, [ptr_contato_atual]
-		add si, 30
-		call printarMensagem
-
-		call checkPage
-		call setCursor
-		mov si, [ptr_contato_atual]
-		add si, 45
-		call printarMensagem
-
-		call checkPage
-		call setCursor
-		mov si, [ptr_contato_atual]
-		add si, 75
-		call printarMensagem
+		call printarDados
 
 		mov si, [ptr_contato_atual]
 		add si, 86
@@ -803,9 +778,6 @@ busca:
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 ret
-
-
-
 
 fim:
 jmp $
