@@ -14,7 +14,7 @@ constantes:
 	tam_email equ 30
 	tam_tel equ 11
 	tam_grupoLista equ 15
-	tam_contato equ 72
+	tam_contato equ 87
 	tam_horizontal_limite equ 1280 ;Obs: uma linha é 640, botando 1280 ele fica uma linha mais grossa
 
 	linhas_uma_pag equ 60
@@ -420,7 +420,7 @@ addCom:
 	call readString
 
 	mov di, [ptr_ultimo_contato]
-	add di, 86
+	add di, tam_contato
 	mov [ptr_ultimo_contato], di
 	call checkPage
 
@@ -445,7 +445,7 @@ searchCom:
 	call readString
 
 	mov si, reservaContato
-	sub si, 86
+	sub si, tam_contato
 	mov [ptr_contato_atual], si
 
 	mov cl, [MAX_contatos]
@@ -453,7 +453,7 @@ searchCom:
 
 	compararStringMaior:
 		mov si, [ptr_contato_atual]
-		add si, 86
+		add si, tam_contato
 		mov [ptr_contato_atual], si
 
 		mov cl, [MAX_contatos]
@@ -564,7 +564,7 @@ delCom:
 
 	mov di, [ptr_contato_atual]
 	mov si, [ptr_ultimo_contato]
-	mov bx, 86
+	mov bx, tam_contato
 	mov dx, 0
 	substituicao:
 		lodsb
@@ -577,7 +577,8 @@ delCom:
 		jne substituicao
 
 	delUltimo
-		sub si, 172
+		mov si, [ptr_ultimo_contato]
+		sub si, tam_contato
 		mov [ptr_ultimo_contato], si
 		mov ax, [MAX_contatos]
 		dec ax
@@ -600,7 +601,7 @@ listCom:
 	mov cx, [MAX_contatos]
 	mov si, [ptr_contato_atual]
 
-	sub si, 86
+	sub si, tam_contato
 	mov [ptr_contato_atual], si
 
 	lll:
@@ -608,7 +609,7 @@ listCom:
 	push cx
 
 	mov si, [ptr_contato_atual]
-	add si, 86
+	add si, tam_contato
 	mov [ptr_contato_atual], si
 
 	call checkPage
@@ -700,7 +701,7 @@ COMANDOOCULTOSALVAVIDA:
 		call printarDados
 
 		mov si, [ptr_contato_atual]
-		add si, 86
+		add si, tam_contato
 		mov [ptr_contato_atual], si
 
 		xor al, al
@@ -729,7 +730,7 @@ busca:
 	call readString
 
 	mov si, reservaContato
-	sub si, 86
+	sub si, tam_contato
 	mov [ptr_contato_atual], si
 
 	mov cl, [MAX_contatos]
@@ -737,7 +738,7 @@ busca:
 
 	compararStringMaior_:
 		mov si, [ptr_contato_atual]
-		add si, 86
+		add si, tam_contato
 		mov [ptr_contato_atual], si
 
 		mov cl, [MAX_contatos]
