@@ -7,7 +7,7 @@ constantes:
 	cor_limite equ 7
 	linha_limite equ 120
 	coluna_Mensagem equ 17
-
+	
 	;Tamanhos de constantes
 	tam_nome equ 30
 	tam_grupo equ 1
@@ -51,6 +51,7 @@ dados:
 	ptr_ultimo_grupo dw reservaGrupo
 	ptr_grupo_atual dw reservaGrupo
 
+	ptr_aux dw 0
 	;Contadores
     num_contatos db 0
     MAX_contatos db 0
@@ -58,7 +59,7 @@ dados:
 
     num_grupos db 0
     MAX_grupos db 0
-   	stringNomeSearch times 30 db 0
+   	stringNomeSearch times 30 db 0 
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
@@ -70,6 +71,49 @@ dados:
     testeList: db "List", 0
     testeListGroup: db "List Group", 0
 
+printarDados:
+	mov [ptr_aux], si
+
+	call setCursor
+	call checkPage
+	mov si, nome
+	call printarMensagem
+
+	call checkPage
+	mov si, [ptr_aux]
+	add si, 0
+	call printarMensagem
+
+	call setCursor
+	call checkPage
+	mov si, grupo
+	call printarMensagem
+
+	call checkPage
+	mov si, [ptr_aux]
+	add si, 30
+	call printarMensagem
+
+	call setCursor
+	call checkPage
+	mov si, email
+	call printarMensagem
+
+	call checkPage
+	mov si, [ptr_aux]
+	add si, 45
+	call printarMensagem
+
+	call setCursor
+	call checkPage
+	mov si, telefone
+	call printarMensagem
+
+	call checkPage
+	mov si, [ptr_aux]
+	add si, 75
+	call printarMensagem
+ret
 
 printarMensagem:
 	;Printa a string que tá em SI
@@ -435,22 +479,19 @@ searchCom:
 
 			mov cl, [tam_String_Search_aux]
 			dec cl
-			mov [tam_String_Search_aux], cl
+			mov [tam_String_Search_aux], cl 
 
 			cmpsb
 			jne compararStringMaior
 		je compararStrings
-
+	
 	sucesso:
-	call setCursor
-	call checkPage
-	mov si, testeList
-	call printarMensagem
-
+	mov si, [ptr_contato_atual]
+	call printarDados
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
-
+	
 	erro:
 	call setCursor
 	call checkPage
