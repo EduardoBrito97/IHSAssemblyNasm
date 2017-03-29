@@ -7,7 +7,7 @@ constantes:
 	cor_limite equ 7
 	linha_limite equ 120
 	coluna_Mensagem equ 17
-	
+
 	;Tamanhos de constantes
 	tam_nome equ 30
 	tam_grupo equ 1
@@ -58,7 +58,7 @@ dados:
 
     num_grupos db 0
     MAX_grupos db 0
-   	stringNomeSearch times 30 db 0 
+   	stringNomeSearch times 30 db 0
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
@@ -98,10 +98,10 @@ readString:
 		mov bh, 0
 		mov bl, cor_Letras
 		int 10h
-		
+
 		cmp al, 0dh ;É \n?
 		je fimLoopRead
-		
+
 		stosb
 
 		mov cl, [tam_String_Search]
@@ -111,7 +111,7 @@ readString:
 		cmp al, 08h ;É backspace?
 		je backSpace
 		jmp loopRead
-		
+
 		backSpace:
 			;Pra printar o backSpace, vc precisa printar um backSpace pra voltar (já printado na chamada)
 			;Printar um space pra apagar a letra
@@ -129,9 +129,9 @@ readString:
 			mov bh, 0
 			mov bl, cor_Letras
 			int 10h
-	jmp loopRead 
+	jmp loopRead
 	fimLoopRead:
-	xor cl, cl 
+	xor cl, cl
 	mov [di], cl ;Colocando um \0 no fim da string
 ret
 
@@ -163,7 +163,7 @@ incPage:
 	mov al, 12h
 	int 10h
 
-	mov ah, 0xb 
+	mov ah, 0xb
 	mov bh, 0
 	mov bl, 0h
 	int 10h
@@ -172,7 +172,7 @@ incPage:
 	mov bh, 0
 	mov dh, [linha_Ultima_msg]
 	mov dl, 0
-	int 10h	
+	int 10h
 ret
 
 setCursor:
@@ -213,7 +213,7 @@ mov ah, 0
 mov al, 12h ; escolhendo o modo de vídeo (VGA)
 int 10h
 
-mov ah, 0xb 
+mov ah, 0xb
 mov bh, 0
 mov bl, 0h ; selecionando a cor da tela (preta)
 int 10h
@@ -260,7 +260,7 @@ printarlimite:
 mov cx, 0
 mov dx, 0
 mov di, linha_limite ;Posição da linha do limite
-mov si, tam_horizontal_limite 
+mov si, tam_horizontal_limite
 
 printarlimite1:
 
@@ -346,7 +346,7 @@ addCom:
 	call setCursor
 	mov si, grupo
 	call printarMensagem
-	
+
 	mov ax, 0
 	mov es, ax
 	mov di, [ptr_ultimo_contato]
@@ -357,7 +357,7 @@ addCom:
 	call setCursor
 	mov si, email
 	call printarMensagem
-	
+
 	mov ax, 0
 	mov es, ax
 	mov di, [ptr_ultimo_contato]
@@ -368,7 +368,7 @@ addCom:
 	call setCursor
 	mov si, telefone
 	call printarMensagem
-	
+
 	mov ax, 0
 	mov es, ax
 	mov di, [ptr_ultimo_contato]
@@ -435,12 +435,12 @@ searchCom:
 
 			mov cl, [tam_String_Search_aux]
 			dec cl
-			mov [tam_String_Search_aux], cl 
+			mov [tam_String_Search_aux], cl
 
 			cmpsb
 			jne compararStringMaior
 		je compararStrings
-	
+
 	sucesso:
 	call setCursor
 	call checkPage
@@ -450,7 +450,7 @@ searchCom:
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
-	
+
 	erro:
 	call setCursor
 	call checkPage
@@ -467,6 +467,54 @@ editCom:
 	mov si, testeEdit
 	call printarMensagem
 
+			;;		Falta uma funcao aqui de BUSCA
+			;;		esta irá retornar o ptr_contato_atual
+			;;		que será usado abaixo
+			;;		!!!!!!!!!!!!!!!!!!!!!!!!
+
+	call checkPage
+	call setCursor
+	mov si, nome
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	call readString
+
+	call checkPage
+	call setCursor
+	mov si, grupo
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	add di, 30
+	call readString
+
+	call checkPage
+	call setCursor
+	mov si, email
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	add di, 45
+	call readString
+
+	call checkPage
+	call setCursor
+	mov si, telefone
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov di, [ptr_contato_atual]
+	add di, 75
+	call readString
+
 jmp comand
 
 delCom:
@@ -478,10 +526,92 @@ delCom:
 jmp comand
 
 listCom:
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 	call setCursor
 	mov si, testeList
 	call printarMensagem
+
+	mov di, [num_contatos]
+	mov si, 0
+	cmp si, di
+	je sem_contatos
+
+	mov cx, [MAX_contatos]
+	mov si, [ptr_contato_atual]
+
+	sub si, 86
+	mov [ptr_contato_atual], si
+
+	lll:
+
+	push cx
+
+	mov si, [ptr_contato_atual]
+	add si, 86
+	mov [ptr_contato_atual], si
+
+	call checkPage
+	call setCursor
+	mov si, nome
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	call printarMensagem
+
+	call checkPage
+	call setCursor
+	mov si, grupo
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 30
+	call printarMensagem
+
+	call checkPage
+	call setCursor
+	mov si, email
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 45
+	call printarMensagem
+
+
+	call checkPage
+	call setCursor
+	mov si, telefone
+	call printarMensagem
+
+	mov ax, 0
+	mov es, ax
+	mov si, [ptr_contato_atual]
+	add si, 75
+	call printarMensagem
+
+	pop cx
+	call setCursor
+	loop lll
+
+
+	mov si, [ptr_agenda]
+	mov [ptr_contato_atual], si
+
+
+
+sem_contatos:
+
+
+
 jmp comand
+
 
 listGroup:
 	call checkPage
@@ -504,7 +634,7 @@ errorMessage:
 	call printarMensagem
 
 jmp comand
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 COMANDOOCULTOSALVAVIDA:
 	mov cl, [MAX_contatos]
 	mov [MAX_contatos_aux], cl
@@ -549,6 +679,7 @@ COMANDOOCULTOSALVAVIDA:
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
+
 
 fim:
 jmp $
