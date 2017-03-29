@@ -17,7 +17,7 @@ constantes:
 	tam_contato equ 87
 	tam_horizontal_limite equ 1280 ;Obs: uma linha é 640, botando 1280 ele fica uma linha mais grossa
 
-	linhas_uma_pag equ 30
+	linhas_uma_pag equ 60
 
 dados:
 	;Mensagens
@@ -184,8 +184,39 @@ checkPage:
 	mov dx, [linha_Ultima_msg]
 	xor ax, ax
 	add ax, linhas_uma_pag
-	cmp ax, dx
-	jle clearCom
+	div ax
+	xor cx, cx
+	cmp cx, dx
+	je incPage
+ret
+
+incPage:
+	;Indo para a próxima página
+	mov ax, [pag_Ultima_msg]
+	inc ax
+	mov [pag_Ultima_msg], ax
+
+	;Iniciando na linha 0 da próxima página
+	xor dx,dx
+	mov [linha_Ultima_msg], dx
+
+	;Limpando a tela
+	xor ax, ax
+	mov ds, ax
+	mov ah, 0
+	mov al, 12h
+	int 10h
+
+	mov ah, 0xb
+	mov bh, 0
+	mov bl, 0h
+	int 10h
+
+	mov ah, 2
+	mov bh, 0
+	mov dh, [linha_Ultima_msg]
+	mov dl, 0
+	int 10h
 ret
 
 setCursor:
