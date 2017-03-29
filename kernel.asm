@@ -73,6 +73,8 @@ dados:
     pressEnterToClear: db "Pressione enter para limpar a tela e imprimir o resto.", 0
 
 busca:
+	pusha
+
 	call checkPage
 	call setCursor
 	mov si, nome
@@ -135,8 +137,14 @@ busca:
 
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
+
+popa
+
 ret
-	erro_:
+
+erro_:
+	pusha
+
 	call setCursor
 	call checkPage
 	mov si, mensagem_erro
@@ -145,6 +153,8 @@ ret
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 	stc
+
+	popa
 ret
 
 printarMenu:
@@ -217,6 +227,34 @@ printarMenu:
 	inc dh
 	mov [linha_Ultima_msg], dh
 ret
+
+
+confere_grupo:
+
+	pusha
+	
+	mov cx, [tam_String_Search]
+	mov si, [ptr_contato_atual]
+	add si, 30
+	mov di, [stringNomeSearch]
+
+	looloop:
+		cmpsb
+			jne nao_bateu
+
+	loop looloop
+
+	jmp pula
+
+	nao_bateu:
+		stc
+
+	pula:
+
+	popa
+ret
+
+
 
 printarDados:
 	mov [ptr_aux], si
@@ -575,6 +613,7 @@ jmp comand
 jmp comand
 
 editCom:
+
 	call busca
 	jc comand
 
@@ -621,7 +660,7 @@ editCom:
 	add di, 75
 	call readString
 
-	mov si, [ptr_agenda]
+	mov si, reservaContato
 	mov [ptr_contato_atual], si
 
 jmp comand
@@ -666,6 +705,7 @@ listCom:
 	mov di, [MAX_contatos]
 	mov si, 0
 	cmp si, di
+
 	je sem_contatos
 
 
@@ -674,10 +714,22 @@ listCom:
 		mov si, reservaContato
 		mov [ptr_contato_atual], si
 
+		call setCursor
+		mov si, grupo
+		call printarMensagem
+		mov di,  [stringNomeSearch]
+		call readString;
+
+
 		PRINTATUTO_:
+
+			call confere_grupo
+			jc grupo_nao_bate
 
 			mov si, [ptr_contato_atual]
 			call printarDados
+
+			grupo_nao_bate:
 
 			mov si, [ptr_contato_atual]
 			add si, tam_contato
@@ -693,13 +745,11 @@ listCom:
 		mov cl, [MAX_contatos_aux]
 		mov [MAX_contatos], cl
 
-
-	call setCursor
-
-	mov si, [ptr_agenda]
+	mov si, reservaContato
 	mov [ptr_contato_atual], si
 
 sem_contatos:
+
 jmp comand
 
 
