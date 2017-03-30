@@ -52,29 +52,25 @@ dados:
 	ptr_grupo_atual dw reservaGrupo
 
 	ptr_aux dw 0
+
 	;Contadores
-    num_contatos db 0
     MAX_contatos db 0
     MAX_contatos_aux db 0
 
-    num_grupos db 0
     MAX_grupos db 0
+    MAX_grupos_aux db 0
+
    	stringNomeSearch times 30 db 0 
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
     ;Testes
-    testeAdd: db "Add", 0
-    testeSearch: db "Search", 0
-    testeDel: db "Del", 0
-    testeEdit: db "Edit", 0
     testeList: db "Sucesso!", 0
+    fimLista: db "Fim dos contatos do grupo solicitado.", 0
     testeListGroup: db "List Group", 0
     pressEnterToClear: db "Pressione enter para limpar a tela e imprimir o resto.", 0
 
 busca:
-	pusha
-
 	call checkPage
 	call setCursor
 	mov si, nome
@@ -137,14 +133,8 @@ busca:
 
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
-
-popa
-
 ret
-
-erro_:
-	pusha
-
+	erro_:
 	call setCursor
 	call checkPage
 	mov si, mensagem_erro
@@ -153,6 +143,30 @@ erro_:
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 	stc
+ret
+
+confere_grupo:
+
+	pusha
+	
+	mov cx, [tam_String_Search]
+	add cx, 1
+	mov si, [ptr_contato_atual]
+	add si, 30
+	mov di, [stringNomeSearch]
+
+	looloop:
+		cmpsb
+			jne nao_bateu
+
+	loop looloop
+
+	jmp pula
+
+	nao_bateu:
+		stc
+
+	pula:
 
 	popa
 ret
@@ -226,36 +240,8 @@ printarMenu:
 	mov dh, 7 ;numero da linha
 	inc dh
 	mov [linha_Ultima_msg], dh
+	call setCursor
 ret
-
-
-confere_grupo:
-
-	pusha
-	
-	mov cx, [tam_String_Search]
-	add cx, 1
-	mov si, [ptr_contato_atual]
-	add si, 30
-	mov di, [stringNomeSearch]
-
-	looloop:
-		cmpsb
-			jne nao_bateu
-
-	loop looloop
-
-	jmp pula
-
-	nao_bateu:
-		stc
-
-	pula:
-
-	popa
-ret
-
-
 
 printarDados:
 	mov [ptr_aux], si
@@ -265,7 +251,6 @@ printarDados:
 	mov si, nome
 	call printarMensagem
 
-	call checkPage
 	mov si, [ptr_aux]
 	add si, 0
 	call printarMensagem
@@ -275,7 +260,6 @@ printarDados:
 	mov si, grupo
 	call printarMensagem
 
-	call checkPage
 	mov si, [ptr_aux]
 	add si, 30
 	call printarMensagem
@@ -285,7 +269,6 @@ printarDados:
 	mov si, email
 	call printarMensagem
 
-	call checkPage
 	mov si, [ptr_aux]
 	add si, 45
 	call printarMensagem
@@ -295,7 +278,6 @@ printarDados:
 	mov si, telefone
 	call printarMensagem
 
-	call checkPage
 	mov si, [ptr_aux]
 	add si, 75
 	call printarMensagem
@@ -394,13 +376,12 @@ checkPage:
 		xor ax, ax
 		mov [linha_Ultima_msg], ax
 		call printarMenu
-
 ret
 
 setCursor:
 	;Seta o cursor pra próxima linha
 	mov ah, 2
-	mov bh, [pag_Ultima_msg]
+	mov bh, 0
 	mov dh, [linha_Ultima_msg]
 	mov dl, 0
 	int 10h
@@ -441,6 +422,9 @@ mov bl, 0h ; selecionando a cor da tela (preta)
 int 10h
 
 call printarMenu
+
+mov ax, 8
+mov [linha_Ultima_msg], ax
 
 comand:
 mov ah, 0
@@ -487,8 +471,8 @@ je COMANDOOCULTOSALVAVIDA
 jmp errorMessage
 
 addCom:
-	call checkPage
 	call setCursor
+	call checkPage
 	mov si, nome
 	call printarMensagem
 
@@ -497,8 +481,8 @@ addCom:
 	mov di, [ptr_ultimo_contato]
 	call readString
 
-	call checkPage
 	call setCursor
+	call checkPage
 	mov si, grupo
 	call printarMensagem
 
@@ -508,8 +492,8 @@ addCom:
 	add di, 30
 	call readString
 
-	call checkPage
 	call setCursor
+	call checkPage
 	mov si, email
 	call printarMensagem
 
@@ -519,8 +503,8 @@ addCom:
 	add di, 45
 	call readString
 
-	call checkPage
 	call setCursor
+	call checkPage
 	mov si, telefone
 	call printarMensagem
 
@@ -614,7 +598,6 @@ jmp comand
 jmp comand
 
 editCom:
-
 	call busca
 	jc comand
 
@@ -661,7 +644,7 @@ editCom:
 	add di, 75
 	call readString
 
-	mov si, reservaContato
+	mov si, [ptr_agenda]
 	mov [ptr_contato_atual], si
 
 jmp comand
@@ -698,11 +681,6 @@ jmp comand
 listCom:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-	call setCursor
-	mov si, testeList
-	call printarMensagem
-
 	mov di, [MAX_contatos]
 	mov si, 0
 	cmp si, di
@@ -749,6 +727,10 @@ listCom:
 	mov si, reservaContato
 	mov [ptr_contato_atual], si
 
+	call setCursor
+	mov si, fimLista
+	call printarMensagem
+
 sem_contatos:
 
 jmp comand
@@ -765,7 +747,6 @@ jmp comand
 clearCom:
 	xor dh, dh
 	mov [linha_Ultima_msg], dh
-	mov [pag_Ultima_msg], dh
 jmp start
 
 errorMessage:
