@@ -234,6 +234,7 @@ confere_grupo:
 	pusha
 	
 	mov cx, [tam_String_Search]
+	add cx, 1
 	mov si, [ptr_contato_atual]
 	add si, 30
 	mov di, [stringNomeSearch]
