@@ -1,4 +1,42 @@
 org 0x500
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Implementacao da Interrupcao 20H (AP_02_a);
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+jmp 0x00:interrupcao
+
+aula db "Aula de IHS", 0
+tamanho_aula db 11					;Não precisou do tamanho devido a nossa funcao de printarMSG
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Funcao pedida na AP_02_a;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+inter_0:
+	mov si, aula
+	call printarMensagem
+ iret
+
+ptr_int dw inter_0
+
+interrupcao:
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Carga na memória das interrupćões;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  push ds
+
+  xor ax, ax
+  mov ds, ax
+  mov di, 0x80 							;	Offset de 20H
+	mov si, [ptr_int]
+  mov word[di], si							; Movendo IP
+  mov word[di + 2], 0				; Endereco da interrupcao >> CS
+
+  pop ds
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 jmp 0x0000:start
 
 constantes:
@@ -7,7 +45,7 @@ constantes:
 	cor_limite equ 7
 	linha_limite equ 120
 	coluna_Mensagem equ 17
-	
+
 	;Tamanhos de constantes
 	tam_nome equ 30
 	tam_grupo equ 1
@@ -60,7 +98,7 @@ dados:
     MAX_grupos db 0
     MAX_grupos_aux db 0
 
-   	stringNomeSearch times 30 db 0 
+   	stringNomeSearch times 30 db 0
    	tam_String_Search db 0
    	tam_String_Search_aux db 0
 
@@ -148,7 +186,7 @@ ret
 confere_grupo:
 
 	pusha
-	
+
 	mov cx, [tam_String_Search]
 	add cx, 1
 	mov si, [ptr_contato_atual]
@@ -348,7 +386,7 @@ readString:
 ret
 
 checkPage:
-	
+
 
 	;Checando se precisa avançar uma página
 	mov dx, [linha_Ultima_msg]
@@ -403,6 +441,8 @@ setCursorMenu:
 ret
 
 start:
+
+
 xor ax, ax
 mov [linha_Ultima_msg], ax
 mov ds, ax
@@ -421,10 +461,24 @@ mov bh, 0
 mov bl, 0h ; selecionando a cor da tela (preta)
 int 10h
 
+
+
 call printarMenu
 
 mov ax, 8
 mov [linha_Ultima_msg], ax
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Chamada da interrupcão 20h;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+popa
+call setCursor
+call checkPage
+mov bx, aula
+mov cx, tamanho_aula
+int 20H
+pusha
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 comand:
 mov ah, 0
@@ -471,6 +525,7 @@ je COMANDOOCULTOSALVAVIDA
 jmp errorMessage
 
 addCom:
+
 	call setCursor
 	call checkPage
 	mov si, nome
@@ -574,19 +629,19 @@ searchCom:
 
 			mov cl, [tam_String_Search_aux]
 			dec cl
-			mov [tam_String_Search_aux], cl 
+			mov [tam_String_Search_aux], cl
 
 			cmpsb
 			jne compararStringMaior
 		je compararStrings
-	
+
 	sucesso:
 	mov si, [ptr_contato_atual]
 	call printarDados
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
 jmp comand
-	
+
 	erro:
 	call setCursor
 	call checkPage
@@ -650,7 +705,7 @@ editCom:
 jmp comand
 
 delCom:
-	
+
 	call busca
 	jc comand
 
@@ -696,6 +751,8 @@ listCom:
 		call setCursor
 		mov si, grupo
 		call printarMensagem
+
+		;Leitura da string do grupo
 		mov di,  [stringNomeSearch]
 		call readString;
 
