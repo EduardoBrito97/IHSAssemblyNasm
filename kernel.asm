@@ -1,4 +1,3 @@
-org 0x500
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Implementacao da Interrupcao 20H (AP_02_a);
