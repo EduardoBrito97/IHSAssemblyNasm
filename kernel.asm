@@ -319,28 +319,26 @@ ret
 
 confere_grupo:
 
-	
-	
-	mov cx, [tam_String_Search]
+	mov cl, [tam_String_Search]
+	mov [tam_String_Search_aux], cl
 	mov si, [ptr_contato_atual]
 	add si, 30
-	mov di, [stringNomeSearch]
+	mov di, stringNomeSearch
 
-	looloop:
+	compare_grupo
+		mov cl, [tam_String_Search_aux]
+		dec cl
+		mov [tam_String_Search_aux], cl
+		cmp cl, 0
+		jl pula
+
 		cmpsb
-			jne nao_bateu
-
-	loop looloop
-
-	jmp pula
+		jne nao_bateu
+	jmp compare_grupo
 
 	nao_bateu:
 		stc
-
 	pula:
-
-
-	
 ret
 
 
@@ -455,7 +453,6 @@ ret
 
 checkPage:
 	
-
 	;Checando se precisa avançar uma página
 	mov dx, [linha_Ultima_msg]
 	xor ax, ax
@@ -536,13 +533,13 @@ mov [linha_Ultima_msg], dx
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;Chamada da interrupcão 20h;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-popa
+pusha
 call setCursor
 call checkPage
 mov bx, aula
 mov cx, tamanho_aula
 int 20H
-pusha
+popa
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 comand:
@@ -751,7 +748,7 @@ editCom:
 	mov di, [ptr_contato_atual]
 	add di, 30
 	mov [ptr_aux], di
-	
+
 	call addGroup
 
 	call checkPage
@@ -813,34 +810,24 @@ jmp comand
 listCom:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-	call setCursor
-	mov si, testeList
-	call printarMensagem
-
 	mov di, [MAX_contatos]
-	mov si, 0
-	cmp si, di
-
-	je sem_contatos
-
+	cmp di, 0h
+	jle sem_contatos
 
 	mov cl, [MAX_contatos]
 	mov [MAX_contatos_aux], cl
-	mov si, reservaContato
-	mov [ptr_contato_atual], si
 
 	call setCursor
 	mov si, grupo
 	call printarMensagem
 
-	mov di, [stringNomeSearch]
-	call readString;
+	mov di, stringNomeSearch
+	call readString
 
+	mov si, reservaContato
+	mov [ptr_contato_atual], si
 
 		PRINTATUTO_:
-
-			pusha
 
 			call confere_grupo
 			jc grupo_nao_bate
@@ -849,25 +836,18 @@ listCom:
 			call printarDados
 
 			grupo_nao_bate:
-			popa
-
 			mov si, [ptr_contato_atual]
 			add si, tam_contato
 			mov [ptr_contato_atual], si
 
-			xor al, al
 			mov cl, [MAX_contatos]
 			dec cl
 			mov [MAX_contatos], cl
-			cmp cl, al
+			cmp cl, 0h
 		jne PRINTATUTO_
 
 		mov cl, [MAX_contatos_aux]
 		mov [MAX_contatos], cl
-
-	mov si, reservaContato
-	mov [ptr_contato_atual], si
-
 sem_contatos:
 
 jmp comand
@@ -890,7 +870,6 @@ listGroup:
 			add di, 15
 			mov si, di
 	jmp printGroup
-
 
 end:
 	mov si, testeList
@@ -920,10 +899,6 @@ errorMessage:
 	call printarMensagem
 
 jmp comand
-
-listContGroups:
-	mov si, reservaGrupo
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 COMANDOOCULTOSALVAVIDA:
