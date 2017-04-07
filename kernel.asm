@@ -70,7 +70,7 @@ interrupcao2:
 
 	xor ax, ax
 	mov ds, ax
-	mov di, 0x84							;	Offset de 21H
+	mov di, 0x100							;	Offset de 40H
 	mov si, [ptr_comando]
 	mov word[di], si							; Movendo IP
 	mov word[di + 2], 0				; Endereco da interrupcao >> CS
@@ -602,7 +602,7 @@ int 10h
 pusha
 call checkPage
 mov al, [caracter_lido]
-int 21h
+int 40h
 popa
 
 jmp comand
