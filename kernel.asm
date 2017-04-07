@@ -19,6 +19,33 @@ inter_0:
 
 ptr_int dw inter_0
 
+inter_Com:
+		cmp al, '1'
+		je addCom
+
+		cmp al, '2'
+		je searchCom
+
+		cmp al, '3'
+		je editCom
+
+		cmp al, '4'
+		je delCom
+
+		cmp al, '5'
+		je listGroup
+
+		cmp al, '6'
+		je listCom
+
+		cmp al, '7'
+		je clearCom
+
+		jmp errorMessage
+iret
+
+ptr_comando dw inter_Com
+
 interrupcao:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -26,18 +53,31 @@ interrupcao:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   push ds
 
-  xor ax, ax
-  mov ds, ax
-  mov di, 0x80 							;	Offset de 20H
+	xor ax, ax
+	mov ds, ax
+	mov di, 0x80 							;	Offset de 20H
 	mov si, [ptr_int]
-  mov word[di], si							; Movendo IP
-  mov word[di + 2], 0				; Endereco da interrupcao >> CS
-
+	mov word[di], si							; Movendo IP
+	mov word[di + 2], 0				; Endereco da interrupcao >> CS
   pop ds
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-jmp 0x0000:start
+jmp 0x0000:interrupcao2
+
+interrupcao2:
+	
+	push ds
+
+	xor ax, ax
+	mov ds, ax
+	mov di, 0x84							;	Offset de 21H
+	mov si, [ptr_comando]
+	mov word[di], si							; Movendo IP
+	mov word[di + 2], 0				; Endereco da interrupcao >> CS
+
+	pop ds
+
+jmp 0x0:start
 
 constantes:
 	;Menu
@@ -537,7 +577,6 @@ pusha
 call setCursor
 call checkPage
 mov bx, aula
-mov cx, tamanho_aula
 int 20H
 popa
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -560,31 +599,13 @@ mov bh, 0
 mov bl, cor_Letras
 int 10h
 
-cmp al, '1'
-je addCom
+pusha
+call checkPage
+mov al, [caracter_lido]
+int 21h
+popa
 
-cmp al, '2'
-je searchCom
-
-cmp al, '3'
-je editCom
-
-cmp al, '4'
-je delCom
-
-cmp al, '5'
-je listGroup
-
-cmp al, '6'
-je listCom
-
-cmp al, '7'
-je clearCom
-
-cmp al, '8'
-je COMANDOOCULTOSALVAVIDA
-
-jmp errorMessage
+jmp comand
 
 addCom:
 	call checkPage
@@ -644,8 +665,7 @@ addCom:
 	mov ax, [MAX_contatos]
 	inc ax
 	mov [MAX_contatos], ax
-
-jmp comand
+iret
 
 searchCom:
 	call checkPage
@@ -707,7 +727,7 @@ searchCom:
 	call printarDados
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
-jmp comand
+iret
 	
 	erro:
 	call setCursor
@@ -717,7 +737,7 @@ jmp comand
 
 	mov cl, [MAX_contatos_aux]
 	mov [MAX_contatos], cl
-jmp comand
+iret
 
 editCom:
 
@@ -775,8 +795,7 @@ editCom:
 
 	mov si, reservaContato
 	mov [ptr_contato_atual], si
-
-jmp comand
+iret
 
 delCom:
 	
@@ -805,7 +824,7 @@ delCom:
 		mov ax, [MAX_contatos]
 		dec ax
 		mov [MAX_contatos], ax
-jmp comand
+iret
 
 listCom:
 
@@ -849,8 +868,7 @@ listCom:
 		mov cl, [MAX_contatos_aux]
 		mov [MAX_contatos], cl
 sem_contatos:
-
-jmp comand
+iret
 
 listGroup:
 
@@ -874,8 +892,7 @@ listGroup:
 end:
 	mov si, testeList
 	call printarMensagem
-
-jmp comand
+iret
 
 clearCom:
 	mov ah, 0
@@ -890,41 +907,14 @@ clearCom:
 	xor ax, ax
 	mov [linha_Ultima_msg], ax
 	call printarMenu
-jmp comand
+iret
 
 errorMessage:
 	call checkPage
 	call setCursor
 	mov si, mensagem_erro
 	call printarMensagem
-
-jmp comand
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-COMANDOOCULTOSALVAVIDA:
-	mov cl, [MAX_contatos]
-	mov [MAX_contatos_aux], cl
-	mov si, reservaContato
-	mov [ptr_contato_atual], si
-	PRINTATUTO:
-
-		mov si, [ptr_contato_atual]
-		call printarDados
-
-		mov si, [ptr_contato_atual]
-		add si, tam_contato
-		mov [ptr_contato_atual], si
-
-		xor al, al
-		mov cl, [MAX_contatos]
-		dec cl
-		mov [MAX_contatos], cl
-		cmp cl, al
-	jne PRINTATUTO
-
-	mov cl, [MAX_contatos_aux]
-	mov [MAX_contatos], cl
-jmp comand
+iret
 
 fim:
 jmp $
